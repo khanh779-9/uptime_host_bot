@@ -25,7 +25,7 @@ if (!empty($_SESSION['user_id']) && (empty($_SESSION['language_code']) || empty(
 }
 
 if (empty($_SESSION['language_code'])) {
-    $_SESSION['language_code'] = 'vi';
+    $_SESSION['language_code'] = 'en';
 }
 
 if (empty($_SESSION['theme_mode'])) {

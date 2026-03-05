@@ -15,17 +15,30 @@ class CronController extends Controller
 
     public function run(): void
     {
+        if (!$this->isCronAuthorized()) {
+            http_response_code(403);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['error' => 'Forbidden'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
         $monitors = $this->monitorModel->allActive();
         $results = [];
 
         foreach ($monitors as $monitor) {
-            $status = $this->checkTarget($monitor);
-            $this->monitorModel->updateCheckResult((int) $monitor['id'], $status);
+            $checkResult = $this->checkTarget($monitor);
+            $this->monitorModel->updateCheckResultWithLatency(
+                (int) $monitor['id'],
+                (int) $checkResult['status'],
+                $checkResult['response_time_ms'],
+                (int) ($monitor['expected_status'] ?? 200)
+            );
             $results[] = [
                 'id' => (int) $monitor['id'],
                 'target_type' => $monitor['target_type'],
                 'url' => $monitor['url'],
-                'status' => $status,
+                'status' => (int) $checkResult['status'],
+                'response_time_ms' => $checkResult['response_time_ms'],
             ];
         }
 
@@ -33,7 +46,26 @@ class CronController extends Controller
         echo json_encode(['checked' => count($results), 'results' => $results], JSON_UNESCAPED_UNICODE);
     }
 
-    private function checkTarget(array $monitor): int
+    private function isCronAuthorized(): bool
+    {
+        $configuredSecret = defined('CRON_SECRET') ? (string) CRON_SECRET : '';
+        if ($configuredSecret === '' || $configuredSecret === 'replace_with_a_long_random_secret') {
+            return false;
+        }
+
+        $token = (string) ($_GET['token'] ?? '');
+        if ($token === '' && isset($_SERVER['HTTP_X_CRON_TOKEN'])) {
+            $token = (string) $_SERVER['HTTP_X_CRON_TOKEN'];
+        }
+
+        if ($token === '') {
+            return false;
+        }
+
+        return hash_equals($configuredSecret, $token);
+    }
+
+    private function checkTarget(array $monitor): array
     {
         $targetType = $monitor['target_type'] ?? 'web';
 
@@ -44,8 +76,9 @@ class CronController extends Controller
         return $this->pingHttp($monitor['url']);
     }
 
-    private function pingHttp(string $url): int
+    private function pingHttp(string $url): array
     {
+        $startedAt = microtime(true);
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_NOBODY => true,
@@ -57,23 +90,37 @@ class CronController extends Controller
 
         curl_exec($ch);
         $statusCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $elapsedMs = (int) round((microtime(true) - $startedAt) * 1000);
 
         if ($statusCode === 0) {
             $statusCode = 503;
         }
 
         curl_close($ch);
-        return $statusCode;
+        return [
+            'status' => $statusCode,
+            'response_time_ms' => max(1, $elapsedMs),
+        ];
     }
 
-    private function checkDatabase(): int
+    private function checkDatabase(): array
     {
+        $startedAt = microtime(true);
+
         try {
             $db = Database::connection();
             $db->query('SELECT 1');
-            return 200;
+            $elapsedMs = (int) round((microtime(true) - $startedAt) * 1000);
+            return [
+                'status' => 200,
+                'response_time_ms' => max(1, $elapsedMs),
+            ];
         } catch (Throwable $e) {
-            return 503;
+            $elapsedMs = (int) round((microtime(true) - $startedAt) * 1000);
+            return [
+                'status' => 503,
+                'response_time_ms' => max(1, $elapsedMs),
+            ];
         }
     }
 }

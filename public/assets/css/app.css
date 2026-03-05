@@ -1,0 +1,114 @@
+body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+}
+
+* {
+    min-width: 0;
+}
+
+.app-panel {
+    border: 0;
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.06);
+}
+
+.app-page-title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.app-sidebar-card {
+    border: 0;
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.06);
+}
+
+.app-sidebar-sticky {
+    top: 5rem;
+}
+
+.app-brand-icon {
+    width: 36px;
+    height: 36px;
+}
+
+.app-brand-icon-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.app-menu-link {
+    border-radius: 0.7rem;
+    padding: 0.65rem 0.85rem;
+    color: var(--bs-body-color);
+    text-decoration: none;
+    display: block;
+    transition: background-color .2s ease, color .2s ease;
+}
+
+.app-menu-link:hover {
+    background: var(--bs-tertiary-bg);
+}
+
+.app-menu-link.active {
+    background: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary-text-emphasis);
+    font-weight: 600;
+}
+
+.app-shell {
+    width: 100%;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+@media (min-width: 576px) {
+    .app-shell {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .app-shell {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .app-shell {
+        padding-left: 0.6rem;
+        padding-right: 0.6rem;
+    }
+
+    .app-panel,
+    .app-sidebar-card {
+        border-radius: 0.85rem;
+    }
+
+    .app-page-title {
+        font-size: 1.15rem;
+        line-height: 1.35;
+    }
+
+    .navbar-brand {
+        font-size: 1rem;
+        max-width: calc(100vw - 6rem);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #mainNav .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    #mainNav .nav-item {
+        width: 100%;
+    }
+}

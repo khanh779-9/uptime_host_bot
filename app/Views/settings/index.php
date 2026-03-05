@@ -1,69 +1,17 @@
-<style>
-    .settings-shell {
-        min-height: calc(100vh - 2rem);
-    }
-
-    .settings-shell .sidebar-card {
-        min-height: calc(100vh - 2rem);
-    }
-
-    .settings-shell .menu-link {
-        border-radius: 0.6rem;
-        padding: 0.6rem 0.8rem;
-        color: var(--bs-body-color);
-        text-decoration: none;
-        display: block;
-    }
-
-    .settings-shell .menu-link.active {
-        background: var(--bs-primary-bg-subtle);
-        color: var(--bs-primary-text-emphasis);
-        font-weight: 600;
-    }
-
-    @media (max-width: 991.98px) {
-        .settings-shell .sidebar-card {
-            min-height: auto;
-        }
-    }
-</style>
-
 <div class="settings-shell row g-3">
-    <aside class="col-12 col-lg-3 col-xl-2">
-        <div class="card border-0 shadow-sm sidebar-card sticky-lg-top" style="top:1rem;">
-            <div class="card-body d-flex flex-column h-100">
-                <div class="mb-3">
-                    <a class="text-decoration-none fw-bold fs-4" href="<?= BASE_URL ?>/index.php?url=monitor/index">
-                        <span class="text-success">●</span>
-                        <?= htmlspecialchars(t('app.name')) ?>
-                    </a>
-                </div>
-
-                <div class="d-grid gap-2 mb-3">
-                    <a class="menu-link" href="<?= BASE_URL ?>/index.php?url=monitor/index"><?= htmlspecialchars(t('nav.monitors')) ?></a>
-                    <a class="menu-link active" href="<?= BASE_URL ?>/index.php?url=settings/index"><?= htmlspecialchars(t('nav.settings')) ?></a>
-                    <a class="menu-link" href="#"><?= htmlspecialchars(t('nav.incidents', 'Incidents')) ?></a>
-                </div>
-
-                <div class="mt-auto pt-3 border-top">
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" data-bs-toggle="dropdown" aria-expanded="false" type="button">
-                            <span><?= htmlspecialchars($_SESSION['username'] ?? 'User') ?></span>
-                            <span>⋯</span>
-                        </button>
-                        <ul class="dropdown-menu w-100">
-                            <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=settings/index"><?= htmlspecialchars(t('nav.settings')) ?></a></li>
-                            <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=auth/logout"><?= htmlspecialchars(t('nav.logout')) ?></a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </aside>
+    <?php
+    $activeMenu = 'settings';
+    include APP_PATH . '/Views/layouts/desktop_sidebar.php';
+    ?>
 
     <main class="col-12 col-lg-9 col-xl-7">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="h3 mb-0"><?= htmlspecialchars(t('settings.title')) ?></h2>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebarSettings" aria-controls="mobileSidebarSettings">
+                    <i class="bi bi-list me-1"></i> <?= htmlspecialchars(t('common.menu')) ?>
+                </button>
+                <h2 class="h3 mb-0 app-page-title"><?= htmlspecialchars(t('settings.title')) ?></h2>
+            </div>
         </div>
 
         <?php if (!empty($saved)): ?>
@@ -71,14 +19,14 @@
         <?php endif; ?>
 
         <?php if (!empty($profileSaved)): ?>
-            <div class="alert alert-success"><?= htmlspecialchars(t('profile.saved', 'Đã cập nhật thông tin cá nhân.')) ?></div>
+            <div class="alert alert-success"><?= htmlspecialchars(t('profile.saved', 'Profile updated successfully.')) ?></div>
         <?php endif; ?>
 
         <?php if (!empty($profileError)): ?>
             <div class="alert alert-danger"><?= htmlspecialchars((string) $profileError) ?></div>
         <?php endif; ?>
 
-        <div class="card shadow-sm border-0 mb-3">
+        <div class="card app-panel mb-3">
             <div class="card-body p-4">
                 <h3 class="h5 mb-3"><?= htmlspecialchars(t('settings.title')) ?></h3>
                 <form method="post" action="<?= BASE_URL ?>/index.php?url=settings/save" class="row g-3 align-items-end">
@@ -108,7 +56,7 @@
             </div>
         </div>
 
-        <div class="card shadow-sm border-0">
+        <div class="card app-panel">
             <div class="card-body p-4">
                 <h3 class="h5 mb-3"><?= htmlspecialchars(t('profile.title', 'Thông tin cá nhân')) ?></h3>
                 <form method="post" action="<?= BASE_URL ?>/index.php?url=settings/profile" class="row g-3 align-items-end">
@@ -137,28 +85,37 @@
     </main>
 
     <section class="col-12 col-xl-3">
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-body">
-                <div class="fw-semibold mb-3"><?= htmlspecialchars(t('dashboard.current_status', 'Current status')) ?></div>
-                <div class="small text-secondary mb-2"><?= htmlspecialchars(t('auth.username')) ?></div>
-                <div class="fw-semibold mb-3"><?= htmlspecialchars((string) ($_SESSION['username'] ?? '')) ?></div>
-                <div class="small text-secondary mb-2"><?= htmlspecialchars(t('auth.email')) ?></div>
-                <div class="fw-semibold"><?= htmlspecialchars((string) ($user['email'] ?? '')) ?></div>
+        <div class="stats-stack">
+            <div class="card app-panel mb-3">
+                <div class="card-body p-4">
+                    <div class="fw-semibold mb-3"><?= htmlspecialchars(t('dashboard.current_status', 'Current status')) ?></div>
+                    <div class="small text-secondary mb-2"><?= htmlspecialchars(t('auth.username')) ?></div>
+                    <div class="fw-semibold mb-3"><?= htmlspecialchars((string) ($_SESSION['username'] ?? '')) ?></div>
+                    <div class="small text-secondary mb-2"><?= htmlspecialchars(t('auth.email')) ?></div>
+                    <div class="fw-semibold"><?= htmlspecialchars((string) ($user['email'] ?? '')) ?></div>
+                </div>
             </div>
-        </div>
 
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-body">
-                <div class="fw-semibold mb-3"><?= htmlspecialchars(t('settings.language')) ?></div>
-                <span class="badge text-bg-secondary"><?= strtoupper(htmlspecialchars((string) ($setting['language_code'] ?? 'vi'))) ?></span>
+            <div class="card app-panel mb-3">
+                <div class="card-body p-4">
+                    <div class="fw-semibold mb-3"><?= htmlspecialchars(t('settings.language')) ?></div>
+                    <span class="badge text-bg-secondary"><?= strtoupper(htmlspecialchars((string) ($setting['language_code'] ?? 'vi'))) ?></span>
+                </div>
             </div>
-        </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="fw-semibold mb-3"><?= htmlspecialchars(t('settings.theme')) ?></div>
-                <span class="badge text-bg-secondary"><?= htmlspecialchars(t('settings.theme.' . ($setting['theme_mode'] ?? 'light'))) ?></span>
+            <div class="card app-panel">
+                <div class="card-body p-4">
+                    <div class="fw-semibold mb-3"><?= htmlspecialchars(t('settings.theme')) ?></div>
+                    <span class="badge text-bg-secondary"><?= htmlspecialchars(t('settings.theme.' . ($setting['theme_mode'] ?? 'light'))) ?></span>
+                </div>
             </div>
         </div>
     </section>
 </div>
+
+<?php
+$offcanvasId = 'mobileSidebarSettings';
+$offcanvasTitle = t('app.name');
+$activeMenu = 'settings';
+include APP_PATH . '/Views/layouts/mobile_sidebar_offcanvas.php';
+?>

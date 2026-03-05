@@ -34,3 +34,29 @@ CREATE TABLE IF NOT EXISTS user_settings (
     CONSTRAINT fk_user_settings_user FOREIGN KEY (user_id)
         REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS monitor_checks (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    monitor_id INT NOT NULL,
+    status_code SMALLINT NOT NULL,
+    response_time_ms INT NULL,
+    checked_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_monitor_checks_monitor FOREIGN KEY (monitor_id)
+        REFERENCES monitors(id) ON DELETE CASCADE,
+    INDEX idx_monitor_checks_monitor_checked_at (monitor_id, checked_at),
+    INDEX idx_monitor_checks_checked_at (checked_at)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS monitor_incidents (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    monitor_id INT NOT NULL,
+    status ENUM('down','resolved') NOT NULL DEFAULT 'down',
+    root_cause VARCHAR(255) NOT NULL,
+    started_at DATETIME NOT NULL,
+    ended_at DATETIME NULL,
+    duration_seconds INT NULL,
+    CONSTRAINT fk_monitor_incidents_monitor FOREIGN KEY (monitor_id)
+        REFERENCES monitors(id) ON DELETE CASCADE,
+    INDEX idx_monitor_incidents_monitor_started (monitor_id, started_at),
+    INDEX idx_monitor_incidents_monitor_status (monitor_id, status)
+) ENGINE=InnoDB;

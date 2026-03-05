@@ -27,13 +27,13 @@ class Setting extends Model
         );
         $stmt->execute([
             'user_id' => $userId,
-            'language_code' => 'vi',
+            'language_code' => 'en',
             'theme_mode' => 'light',
         ]);
 
         return $this->getByUserId($userId) ?? [
             'user_id' => $userId,
-            'language_code' => 'vi',
+            'language_code' => 'en',
             'theme_mode' => 'light',
         ];
     }

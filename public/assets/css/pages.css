@@ -1,0 +1,322 @@
+.home-shell .home-sidebar {
+    min-height: calc(100vh - 2rem);
+}
+
+.home-shell .hero-title {
+    font-size: clamp(1.75rem, 4.8vw, 3rem);
+}
+
+.home-hero-art {
+    transform: translate(10%, -10%);
+}
+
+.home-hero-icon {
+    font-size: 20rem;
+}
+
+.home-hero-gradient {
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-info));
+    -webkit-text-fill-color: transparent;
+}
+
+.home-hero-copy {
+    max-width: 600px;
+    line-height: 1.6;
+}
+
+.monitor-shell,
+.settings-shell,
+.incidents-shell {
+    min-height: calc(100vh - 2rem);
+}
+
+.monitor-shell.align-start,
+.settings-shell,
+.incidents-shell {
+    align-items: flex-start;
+}
+
+.monitor-shell .sidebar-card,
+.settings-shell .sidebar-card,
+.incidents-shell .sidebar-card {
+    min-height: calc(100vh - 2rem);
+}
+
+.monitor-shell .stats-stack {
+    position: sticky;
+    top: 1rem;
+}
+
+.monitor-item {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 1rem;
+    padding: 1rem 1rem 0.85rem;
+    background: var(--bs-body-bg);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.monitor-item:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--bs-primary) 30%, var(--bs-border-color));
+    box-shadow: 0 .7rem 1.25rem rgba(0, 0, 0, .08);
+}
+
+.monitor-item .item-head {
+    display: flex;
+    gap: .65rem;
+    align-items: center;
+    margin-bottom: .65rem;
+}
+
+.monitor-item .status-pill {
+    border-radius: 999px;
+    padding: .3rem .65rem;
+    font-size: .75rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.monitor-item .meta-chip {
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-tertiary-bg);
+    border-radius: .6rem;
+    padding: .32rem .55rem;
+    font-size: .78rem;
+    color: var(--bs-secondary-color);
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+.monitor-item .monitor-url,
+.monitor-item .monitor-url a {
+    word-break: break-all;
+}
+
+.monitor-item .item-actions {
+    border-top: 1px dashed var(--bs-border-color);
+    margin-top: .85rem;
+    padding-top: .8rem;
+}
+
+.monitor-list-actions {
+    align-items: center;
+}
+
+.monitor-list-actions .btn {
+    white-space: nowrap;
+}
+
+.monitor-card-actions {
+    align-items: center;
+}
+
+.monitor-card-actions .btn {
+    white-space: nowrap;
+}
+
+.status-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 0.55rem;
+}
+
+.status-dot.up {
+    background: var(--bs-success);
+}
+
+.status-dot.down {
+    background: var(--bs-danger);
+}
+
+.status-dot.unknown {
+    background: var(--bs-warning);
+}
+
+.monitor-shell .metric-tile {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.85rem;
+    padding: 0.8rem;
+    background: var(--bs-body-bg);
+}
+
+.monitor-shell .chart-wrap {
+    height: 210px;
+    max-height: 210px;
+}
+
+.response-chart-wrap {
+    height: 150px;
+    max-height: 150px;
+}
+
+.monitor-detail-actions {
+    align-items: center;
+}
+
+.monitor-detail-actions .btn {
+    white-space: nowrap;
+}
+
+.uptime-sparkline {
+    display: grid;
+    grid-template-columns: repeat(24, minmax(0, 1fr));
+    gap: 0.3rem;
+}
+
+.uptime-dot {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 0.2rem;
+    display: inline-block;
+}
+
+.uptime-dot.up {
+    background-color: var(--bs-success);
+}
+
+.uptime-dot.down {
+    background-color: var(--bs-danger);
+}
+
+.uptime-dot.unknown {
+    background-color: var(--bs-secondary-bg);
+    border: 1px solid var(--bs-border-color);
+}
+
+.settings-shell .stats-stack {
+    position: sticky;
+    top: 5rem;
+}
+
+.incidents-shell .table th,
+.incidents-shell .table td {
+    white-space: nowrap;
+}
+
+@media (max-width: 991.98px) {
+    .home-shell .home-sidebar {
+        min-height: auto;
+    }
+
+    .monitor-shell .sidebar-card,
+    .settings-shell .sidebar-card,
+    .incidents-shell .sidebar-card {
+        min-height: auto;
+    }
+
+    .monitor-shell .stats-stack,
+    .settings-shell .stats-stack {
+        position: static;
+        top: auto;
+    }
+
+    .incidents-shell .card-body {
+        padding: 1rem !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .home-shell .card-body,
+    .settings-shell .card-body,
+    .monitor-shell .card-body {
+        padding: 1rem !important;
+    }
+
+    .home-shell .hero-copy {
+        font-size: 0.98rem;
+        margin-bottom: 1.1rem !important;
+    }
+
+    .settings-shell .btn {
+        width: 100%;
+    }
+
+    .settings-shell .form-text {
+        font-size: 0.78rem;
+    }
+
+    .monitor-item {
+        padding: 0.85rem 0.85rem 0.75rem;
+    }
+
+    .monitor-item .item-head {
+        gap: 0.5rem;
+        margin-bottom: 0.55rem;
+    }
+
+    .monitor-item .item-head .fs-5 {
+        font-size: 1rem !important;
+    }
+
+    .monitor-item .status-pill {
+        font-size: 0.72rem;
+        padding: 0.28rem 0.58rem;
+    }
+
+    .monitor-item .meta-chip {
+        font-size: 0.72rem;
+        padding: 0.3rem 0.45rem;
+    }
+
+    .monitor-item .item-actions {
+        padding-top: 0.65rem;
+        margin-top: 0.65rem;
+    }
+
+    .monitor-item .item-actions > .small {
+        width: 100%;
+    }
+
+    .monitor-card-actions {
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.45rem;
+    }
+
+    .monitor-card-actions .btn {
+        width: 100%;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        font-size: 0.78rem;
+    }
+
+    .monitor-list-actions {
+        width: 100%;
+    }
+
+    .monitor-list-actions .btn {
+        width: 100%;
+    }
+
+    .monitor-shell .chart-wrap {
+        height: 180px;
+        max-height: 180px;
+    }
+
+    .response-chart-wrap {
+        height: 130px;
+        max-height: 130px;
+    }
+
+    .uptime-sparkline {
+        grid-template-columns: repeat(16, minmax(0, 1fr));
+        gap: 0.22rem;
+    }
+
+    .monitor-detail-actions {
+        width: 100%;
+    }
+
+    .monitor-detail-actions .btn {
+        width: 100%;
+    }
+
+    .monitor-shell .table,
+    .incidents-shell .table {
+        font-size: 0.86rem;
+    }
+}
