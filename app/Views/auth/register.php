@@ -15,7 +15,7 @@
                         <p class="mb-4 opacity-75"><?= htmlspecialchars(t('home.description')) ?></p>
                         <div class="small opacity-75 mb-2"><?= htmlspecialchars(t('auth.login_title')) ?>?</div>
                         <a class="btn btn-light btn-sm rounded-pill align-self-start px-4 shadow-sm fw-medium pt-2 pb-2"
-                            href="<?= BASE_URL ?>/index.php?url=auth/login"><?= htmlspecialchars(t('home.login')) ?></a>
+                            href="<?= route_url('login') ?>"><?= htmlspecialchars(t('home.login')) ?></a>
                     </div>
                 </div>
                 <div class="col-12 col-lg-7 p-4 p-lg-5 bg-body">
@@ -24,7 +24,7 @@
                         <?= htmlspecialchars(t('auth.register_subtitle', 'Create your account to start monitoring uptime in minutes.')) ?>
                     </p>
 
-                    <form method="post" action="<?= BASE_URL ?>/index.php?url=auth/register" class="needs-validation"
+                    <form method="post" action="<?= route_url('register') ?>" class="needs-validation"
                         novalidate>
                         <div class="form-floating mb-3">
                             <input class="form-control rounded-3" type="text" name="username" id="username"
@@ -50,7 +50,7 @@
 
                     <div class="text-center mt-4 small text-body-secondary">
                         <?= htmlspecialchars(t('auth.login_title')) ?>?
-                        <a href="<?= BASE_URL ?>/index.php?url=auth/login"
+                        <a href="<?= route_url('login') ?>"
                             class="text-decoration-none fw-semibold ms-1"><?= htmlspecialchars(t('home.login')) ?></a>
                     </div>
                 </div>

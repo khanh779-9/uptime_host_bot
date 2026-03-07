@@ -25,7 +25,7 @@ class AuthController extends Controller
 
             if ($username !== '' && $password !== '' && $email !== '') {
                 $this->userModel->create($username, $password, $email);
-                $this->redirect('auth/login');
+                $this->redirect('login');
             }
         }
 
@@ -51,7 +51,7 @@ class AuthController extends Controller
                 $_SESSION['theme_mode'] = $setting['theme_mode'] ?? 'light';
                 set_locale((string) $_SESSION['language_code']);
 
-                $this->redirect('monitor/index');
+                $this->redirect('monitor');
             }
 
             $error = t('auth.invalid');
@@ -63,6 +63,6 @@ class AuthController extends Controller
     public function logout(): void
     {
         session_destroy();
-        $this->redirect('auth/login');
+        $this->redirect('login');
     }
 }

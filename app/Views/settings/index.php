@@ -1,5 +1,31 @@
 <div class="settings-shell row g-3">
     <?php
+    $popupItems = [];
+    if (!empty($saved)) {
+        $popupItems[] = [
+            'level' => 'success',
+            'message' => t('settings.saved'),
+        ];
+    }
+    if (!empty($profileSaved)) {
+        $popupItems[] = [
+            'level' => 'success',
+            'message' => t('profile.saved', 'Profile updated successfully.'),
+        ];
+    }
+    if (!empty($profileError)) {
+        $popupItems[] = [
+            'level' => 'danger',
+            'message' => (string) $profileError,
+        ];
+    }
+    ?>
+
+    <?php if (!empty($popupItems)): ?>
+        <?php include APP_PATH . '/Views/layouts/floating_popups.php'; ?>
+    <?php endif; ?>
+
+    <?php
     $activeMenu = 'settings';
     include APP_PATH . '/Views/layouts/desktop_sidebar.php';
     ?>
@@ -14,22 +40,10 @@
             </div>
         </div>
 
-        <?php if (!empty($saved)): ?>
-            <div class="alert alert-success"><?= htmlspecialchars(t('settings.saved')) ?></div>
-        <?php endif; ?>
-
-        <?php if (!empty($profileSaved)): ?>
-            <div class="alert alert-success"><?= htmlspecialchars(t('profile.saved', 'Profile updated successfully.')) ?></div>
-        <?php endif; ?>
-
-        <?php if (!empty($profileError)): ?>
-            <div class="alert alert-danger"><?= htmlspecialchars((string) $profileError) ?></div>
-        <?php endif; ?>
-
         <div class="card app-panel mb-3">
             <div class="card-body p-4">
                 <h3 class="h5 mb-3"><?= htmlspecialchars(t('settings.title')) ?></h3>
-                <form method="post" action="<?= BASE_URL ?>/index.php?url=settings/save" class="row g-3 align-items-end">
+                <form method="post" action="<?= route_url('settings_save') ?>" class="row g-3 align-items-end">
                     <div class="col-12 col-md-6">
                         <label class="form-label"><?= htmlspecialchars(t('settings.language')) ?></label>
                         <select class="form-select" name="language_code" required>
@@ -59,7 +73,7 @@
         <div class="card app-panel">
             <div class="card-body p-4">
                 <h3 class="h5 mb-3"><?= htmlspecialchars(t('profile.title', 'Thông tin cá nhân')) ?></h3>
-                <form method="post" action="<?= BASE_URL ?>/index.php?url=settings/profile" class="row g-3 align-items-end">
+                <form method="post" action="<?= route_url('settings_profile') ?>" class="row g-3 align-items-end">
                     <div class="col-12 col-md-6">
                         <label class="form-label"><?= htmlspecialchars(t('auth.username')) ?></label>
                         <input class="form-control" type="text" name="username" value="<?= htmlspecialchars((string) ($user['username'] ?? '')) ?>" required>

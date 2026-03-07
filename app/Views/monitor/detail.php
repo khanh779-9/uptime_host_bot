@@ -4,7 +4,7 @@ $checkedAt = (string) ($monitor['last_checked_at'] ?? t('common.na'));
 $lastStatus = (string) ($monitor['last_status'] ?? t('common.na'));
 $responseLabels = array_map(static fn($point) => $point['label'], $responseSeries ?? []);
 $responseValues = array_map(static fn($point) => (int) $point['value'], $responseSeries ?? []);
-$cronRunUrl = BASE_URL . '/index.php?url=cron/run&token=' . urlencode((string) CRON_SECRET);
+$cronRunUrl = route_url('cron_run', ['token' => (string) CRON_SECRET]);
 ?>
 
 <div class="monitor-shell row g-3">
@@ -19,20 +19,20 @@ $cronRunUrl = BASE_URL . '/index.php?url=cron/run&token=' . urlencode((string) C
                 <button class="btn btn-outline-secondary btn-sm d-lg-none mb-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebarMonitorDetail" aria-controls="mobileSidebarMonitorDetail">
                     <i class="bi bi-list me-1"></i> <?= htmlspecialchars(t('common.menu')) ?>
                 </button>
-                <div class="small text-secondary mb-1"><a class="text-decoration-none" href="<?= BASE_URL ?>/index.php?url=monitor/index">← <?= htmlspecialchars(t('nav.monitors')) ?></a></div>
+                <div class="small text-secondary mb-1"><a class="text-decoration-none" href="<?= route_url('monitor') ?>">← <?= htmlspecialchars(t('nav.monitors')) ?></a></div>
                 <h2 class="h3 mb-0 app-page-title"><?= htmlspecialchars($monitor['name']) ?></h2>
             </div>
             <div class="monitor-detail-actions d-flex flex-wrap gap-2 justify-content-md-end">
                 <a class="btn btn-outline-primary btn-sm rounded-pill" href="<?= htmlspecialchars($cronRunUrl) ?>" target="_blank"><i class="bi bi-play-fill me-1"></i><?= htmlspecialchars(t('monitor.run_check')) ?></a>
-                <a class="btn <?= (int) ($monitor['is_active'] ?? 1) === 1 ? 'btn-outline-warning' : 'btn-outline-success' ?> btn-sm rounded-pill" href="<?= BASE_URL ?>/index.php?url=monitor/toggleActive&id=<?= (int) $monitor['id'] ?>&next=<?= (int) ($monitor['is_active'] ?? 1) === 1 ? 0 : 1 ?>">
+                <a class="btn <?= (int) ($monitor['is_active'] ?? 1) === 1 ? 'btn-outline-warning' : 'btn-outline-success' ?> btn-sm rounded-pill" href="<?= route_url('monitor_toggle', ['monitor_id' => (int) $monitor['id'], 'next' => (int) ($monitor['is_active'] ?? 1) === 1 ? 0 : 1]) ?>">
                     <i class="bi <?= (int) ($monitor['is_active'] ?? 1) === 1 ? 'bi-pause-circle' : 'bi-play-circle' ?> me-1"></i><?= (int) ($monitor['is_active'] ?? 1) === 1 ? htmlspecialchars(t('status.paused', 'Pause')) : htmlspecialchars(t('status.resumed', 'Resume')) ?>
                 </a>
-                <a class="btn btn-outline-danger btn-sm rounded-pill" href="<?= BASE_URL ?>/index.php?url=monitor/delete&id=<?= (int) $monitor['id'] ?>" onclick="return confirm('<?= htmlspecialchars(t('monitor.delete_confirm')) ?>')"><i class="bi bi-trash3 me-1"></i><?= htmlspecialchars(t('monitor.delete')) ?></a>
+                <a class="btn btn-outline-danger btn-sm rounded-pill" href="<?= route_url('monitor_delete', ['monitor_id' => (int) $monitor['id']]) ?>" onclick="return confirm('<?= htmlspecialchars(t('monitor.delete_confirm')) ?>')"><i class="bi bi-trash3 me-1"></i><?= htmlspecialchars(t('monitor.delete')) ?></a>
             </div>
         </div>
 
         <div class="card app-panel mb-3">
-            <div class="card-body d-flex flex-column flex-lg-row justify-content-between gap-3 p-4">
+            <div class="card-body d-flex flex-column flex-lg-row justify-content-between gap-2 p-4">
                 <div>
                     <span class="badge <?= $statusBadgeClass ?> mb-2"><?= htmlspecialchars($statusText) ?></span>
                     <div class="small text-secondary mb-1"><?= htmlspecialchars(t('monitor.type.' . $monitor['target_type'], $monitor['target_type'])) ?></div>
@@ -50,7 +50,7 @@ $cronRunUrl = BASE_URL . '/index.php?url=cron/run&token=' . urlencode((string) C
             </div>
         </div>
 
-        <div class="row g-3 mb-1">
+        <div class="row g-2 mb-1">
             <div class="col-12 col-md-4">
                 <div class="card app-panel h-100">
                     <div class="card-body p-4">

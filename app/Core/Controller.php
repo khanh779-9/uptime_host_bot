@@ -20,16 +20,16 @@ abstract class Controller
         include APP_PATH . '/Views/layouts/footer.php';
     }
 
-    protected function redirect(string $path): void
+    protected function redirect(string $action): void
     {
-        header('Location: ' . BASE_URL . '/index.php?url=' . trim($path, '/'));
+        header('Location: ' . route_url($action));
         exit;
     }
 
     protected function requireAuth(): void
     {
         if (empty($_SESSION['user_id'])) {
-            $this->redirect('auth/login');
+            $this->redirect('login');
         }
     }
 }

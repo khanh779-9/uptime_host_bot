@@ -3,9 +3,17 @@
 declare(strict_types=1);
 
 require_once APP_PATH . '/Models/Monitor.php';
+require_once APP_PATH . '/Core/MonitorChecker.php';
 
 class MonitorController extends Controller
 {
+    private const DEFAULT_TARGET_TYPE = 'web';
+    private const DEFAULT_INTERVAL_SECONDS = 300;
+    private const DEFAULT_EXPECTED_STATUS = 200;
+    private const DATABASE_PLACEHOLDER_URL = 'mysql://local-connection';
+    private const ALLOWED_TYPES = ['host', 'web', 'api', 'database'];
+    private const ALLOWED_INTERVALS = [10, 30, 50, 60, 300, 900, 1800, 3600];
+
     private Monitor $monitorModel;
 
     public function __construct()
@@ -17,10 +25,37 @@ class MonitorController extends Controller
     {
         $this->requireAuth();
 
-        $monitors = $this->monitorModel->allByUser((int) $_SESSION['user_id']);
+        $allMonitors = $this->monitorModel->allByUser((int) $_SESSION['user_id']);
+        $totalMonitors = count($allMonitors);
+        $minimumItemsPerPage = 10;
+        $maximumItemsOption = max($minimumItemsPerPage, $totalMonitors);
+        $itemsPerPageOptions = [];
+
+        for ($option = $minimumItemsPerPage; $option <= $maximumItemsOption; $option += 10) {
+            $itemsPerPageOptions[] = $option;
+        }
+
+        if (empty($itemsPerPageOptions) || end($itemsPerPageOptions) !== $maximumItemsOption) {
+            $itemsPerPageOptions[] = $maximumItemsOption;
+        }
+
+        $requestedItemsPerPage = (int) ($_GET['per_page'] ?? $minimumItemsPerPage);
+        $itemsPerPage = in_array($requestedItemsPerPage, $itemsPerPageOptions, true)
+            ? $requestedItemsPerPage
+            : $minimumItemsPerPage;
+
+        $currentPage = max(1, (int) ($_GET['page'] ?? 1));
+        $totalPages = max(1, (int) ceil($totalMonitors / $itemsPerPage));
+
+        if ($currentPage > $totalPages) {
+            $currentPage = $totalPages;
+        }
+
+        $offset = ($currentPage - 1) * $itemsPerPage;
+        $monitors = array_slice($allMonitors, $offset, $itemsPerPage);
 
         $stats = [
-            'total' => count($monitors),
+            'total' => $totalMonitors,
             'up' => 0,
             'down' => 0,
             'paused' => 0,
@@ -36,7 +71,7 @@ class MonitorController extends Controller
             'database' => 0,
         ];
 
-        foreach ($monitors as $monitor) {
+        foreach ($allMonitors as $monitor) {
             if ((int) ($monitor['is_active'] ?? 1) === 0) {
                 $stats['paused']++;
             }
@@ -67,6 +102,15 @@ class MonitorController extends Controller
             'monitors' => $monitors,
             'stats' => $stats,
             'typeCounts' => $typeCounts,
+            'pagination' => [
+                'current_page' => $currentPage,
+                'total_pages' => $totalPages,
+                'items_per_page' => $itemsPerPage,
+                'items_per_page_options' => $itemsPerPageOptions,
+                'total_items' => $totalMonitors,
+                'start_item' => $totalMonitors > 0 ? ($offset + 1) : 0,
+                'end_item' => min($offset + $itemsPerPage, $totalMonitors),
+            ],
             'hideTopNav' => true,
         ]);
     }
@@ -78,31 +122,14 @@ class MonitorController extends Controller
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $name = trim($_POST['name'] ?? '');
             $url = trim($_POST['url'] ?? '');
-            $targetType = trim($_POST['target_type'] ?? 'web');
-            $intervalSeconds = (int) ($_POST['check_interval_seconds'] ?? 300);
-            $expectedStatus = (int) ($_POST['expected_status'] ?? 200);
+            $targetType = $this->normalizeTargetType((string) ($_POST['target_type'] ?? self::DEFAULT_TARGET_TYPE));
+            $intervalSeconds = $this->normalizeInterval((int) ($_POST['check_interval_seconds'] ?? self::DEFAULT_INTERVAL_SECONDS));
+            $expectedStatus = $this->normalizeExpectedStatus((int) ($_POST['expected_status'] ?? self::DEFAULT_EXPECTED_STATUS));
 
-            $allowedTypes = ['host', 'web', 'api', 'database'];
-            $allowedIntervals = [30, 50, 60, 300, 900, 1800, 3600];
-
-            if (!in_array($targetType, $allowedTypes, true)) {
-                $targetType = 'web';
-            }
-
-            if (!in_array($intervalSeconds, $allowedIntervals, true)) {
-                $intervalSeconds = 300;
-            }
-
-            if ($expectedStatus < 100 || $expectedStatus > 599) {
-                $expectedStatus = 200;
-            }
-
-            $isValidTarget = $targetType === 'database' ? true : (bool) filter_var($url, FILTER_VALIDATE_URL);
+            $isValidTarget = $this->isValidTarget($targetType, $url);
 
             if ($name !== '' && $isValidTarget) {
-                if ($targetType === 'database' && $url === '') {
-                    $url = 'mysql://local-connection';
-                }
+                $url = $this->normalizeTargetUrl($targetType, $url);
 
                 $created = $this->monitorModel->create((int) $_SESSION['user_id'], $name, $url, $targetType, $intervalSeconds, $expectedStatus);
                 set_flash('monitor_feedback', [
@@ -116,17 +143,17 @@ class MonitorController extends Controller
                 ]);
             }
 
-            $this->redirect('monitor/index');
+            $this->redirect('monitor');
         }
 
-        $this->redirect('monitor/index');
+        $this->redirect('monitor');
     }
 
     public function delete(): void
     {
         $this->requireAuth();
 
-        $id = (int) ($_GET['id'] ?? 0);
+        $id = (int) ($_GET['monitor_id'] ?? ($_GET['id'] ?? 0));
         if ($id > 0) {
             $existingMonitor = $this->monitorModel->findByIdAndUser($id, (int) $_SESSION['user_id']);
 
@@ -149,7 +176,7 @@ class MonitorController extends Controller
             ]);
         }
 
-        $this->redirect('monitor/index');
+        $this->redirect('monitor');
     }
 
     public function update(): void
@@ -160,34 +187,17 @@ class MonitorController extends Controller
             $id = (int) ($_POST['id'] ?? 0);
             $name = trim($_POST['name'] ?? '');
             $url = trim($_POST['url'] ?? '');
-            $targetType = trim($_POST['target_type'] ?? 'web');
-            $intervalSeconds = (int) ($_POST['check_interval_seconds'] ?? 300);
-            $expectedStatus = (int) ($_POST['expected_status'] ?? 200);
+            $targetType = $this->normalizeTargetType((string) ($_POST['target_type'] ?? self::DEFAULT_TARGET_TYPE));
+            $intervalSeconds = $this->normalizeInterval((int) ($_POST['check_interval_seconds'] ?? self::DEFAULT_INTERVAL_SECONDS));
+            $expectedStatus = $this->normalizeExpectedStatus((int) ($_POST['expected_status'] ?? self::DEFAULT_EXPECTED_STATUS));
 
-            $allowedTypes = ['host', 'web', 'api', 'database'];
-            $allowedIntervals = [30, 50, 60, 300, 900, 1800, 3600];
-
-            if (!in_array($targetType, $allowedTypes, true)) {
-                $targetType = 'web';
-            }
-
-            if (!in_array($intervalSeconds, $allowedIntervals, true)) {
-                $intervalSeconds = 300;
-            }
-
-            if ($expectedStatus < 100 || $expectedStatus > 599) {
-                $expectedStatus = 200;
-            }
-
-            $isValidTarget = $targetType === 'database' ? true : (bool) filter_var($url, FILTER_VALIDATE_URL);
+            $isValidTarget = $this->isValidTarget($targetType, $url);
 
             if ($id > 0 && $name !== '' && $isValidTarget) {
                 $existingMonitor = $this->monitorModel->findByIdAndUser($id, (int) $_SESSION['user_id']);
 
                 if ($existingMonitor !== null) {
-                    if ($targetType === 'database' && $url === '') {
-                        $url = 'mysql://local-connection';
-                    }
+                    $url = $this->normalizeTargetUrl($targetType, $url);
 
                     $updated = $this->monitorModel->updateByIdAndUser(
                         $id,
@@ -217,14 +227,14 @@ class MonitorController extends Controller
             }
         }
 
-        $this->redirect('monitor/index');
+        $this->redirect('monitor');
     }
 
     public function toggleActive(): void
     {
         $this->requireAuth();
 
-        $id = (int) ($_GET['id'] ?? 0);
+        $id = (int) ($_GET['monitor_id'] ?? ($_GET['id'] ?? 0));
         $next = (int) ($_GET['next'] ?? 1);
         $nextIsActive = $next === 1;
 
@@ -233,7 +243,7 @@ class MonitorController extends Controller
                 'level' => 'danger',
                 'message' => t('monitor.invalid_input'),
             ]);
-            $this->redirect('monitor/index');
+            $this->redirect('monitor');
         }
 
         $existing = $this->monitorModel->findByIdAndUser($id, (int) $_SESSION['user_id']);
@@ -242,7 +252,7 @@ class MonitorController extends Controller
                 'level' => 'warning',
                 'message' => t('monitor.not_found'),
             ]);
-            $this->redirect('monitor/index');
+            $this->redirect('monitor');
         }
 
         $updated = $this->monitorModel->setActiveByIdAndUser($id, (int) $_SESSION['user_id'], $nextIsActive);
@@ -253,20 +263,20 @@ class MonitorController extends Controller
                 : t('monitor.update_failed'),
         ]);
 
-        $this->redirect('monitor/index');
+        $this->redirect('monitor');
     }
 
     public function detail(): void
     {
         $this->requireAuth();
 
-        $id = (int) ($_GET['id'] ?? 0);
+        $id = (int) ($_GET['monitor_id'] ?? ($_GET['id'] ?? 0));
         if ($id <= 0) {
             set_flash('monitor_feedback', [
                 'level' => 'danger',
                 'message' => t('monitor.invalid_input'),
             ]);
-            $this->redirect('monitor/index');
+            $this->redirect('monitor');
         }
 
         $monitor = $this->monitorModel->findByIdAndUser($id, (int) $_SESSION['user_id']);
@@ -275,7 +285,7 @@ class MonitorController extends Controller
                 'level' => 'warning',
                 'message' => t('monitor.not_found'),
             ]);
-            $this->redirect('monitor/index');
+            $this->redirect('monitor');
         }
 
         $status = $monitor['last_status'];
@@ -337,6 +347,159 @@ class MonitorController extends Controller
         ]);
     }
 
+    public function check(): void
+    {
+        $this->requireAuth();
+
+        header('Content-Type: application/json; charset=utf-8');
+
+        $id = (int) ($_GET['monitor_id'] ?? ($_GET['id'] ?? 0));
+        if ($id <= 0) {
+            http_response_code(400);
+            echo json_encode([
+                'ok' => false,
+                'message' => t('monitor.invalid_input'),
+            ], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $monitor = $this->monitorModel->findByIdAndUser($id, (int) $_SESSION['user_id']);
+        if ($monitor === null) {
+            http_response_code(404);
+            echo json_encode([
+                'ok' => false,
+                'message' => t('monitor.not_found'),
+            ], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        if ((int) ($monitor['is_active'] ?? 1) !== 1) {
+            echo json_encode([
+                'ok' => true,
+                'skipped' => true,
+                'monitor' => $this->buildMonitorRealtimePayload($monitor),
+            ], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $lastCheckedAt = !empty($monitor['last_checked_at']) ? strtotime((string) $monitor['last_checked_at']) : null;
+        $intervalSeconds = max(1, (int) ($monitor['check_interval_seconds'] ?? 300));
+        $secondsSinceLast = $lastCheckedAt ? max(0, time() - $lastCheckedAt) : $intervalSeconds;
+
+        if ($secondsSinceLast < $intervalSeconds) {
+            echo json_encode([
+                'ok' => true,
+                'skipped' => true,
+                'monitor' => $this->buildMonitorRealtimePayload($monitor),
+            ], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $checkResult = MonitorChecker::checkTarget($monitor);
+        $updated = $this->monitorModel->updateCheckResultWithLatency(
+            (int) $monitor['id'],
+            (int) $checkResult['status'],
+            $checkResult['response_time_ms'],
+            (int) ($monitor['expected_status'] ?? 200)
+        );
+
+        if (!$updated) {
+            http_response_code(500);
+            echo json_encode([
+                'ok' => false,
+                'message' => t('monitor.update_failed'),
+            ], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $freshMonitor = $this->monitorModel->findByIdAndUser($id, (int) $_SESSION['user_id']);
+        if ($freshMonitor === null) {
+            http_response_code(500);
+            echo json_encode([
+                'ok' => false,
+                'message' => t('monitor.not_found'),
+            ], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        echo json_encode([
+            'ok' => true,
+            'skipped' => false,
+            'monitor' => $this->buildMonitorRealtimePayload($freshMonitor),
+        ], JSON_UNESCAPED_UNICODE);
+    }
+
+    private function buildMonitorRealtimePayload(array $monitor): array
+    {
+        $expectedStatus = (int) ($monitor['expected_status'] ?? 200);
+        $status = $monitor['last_status'] !== null ? (int) $monitor['last_status'] : null;
+        $isUp = $status !== null && $status === $expectedStatus;
+        $isDown = $status !== null && !$isUp;
+        $state = $isUp ? 'up' : ($isDown ? 'down' : 'unknown');
+        $healthPercent = $isUp ? 100 : ($isDown ? 30 : 10);
+        $checkedAtRaw = !empty($monitor['last_checked_at']) ? (string) $monitor['last_checked_at'] : null;
+        $checkedAtTs = $checkedAtRaw !== null ? strtotime($checkedAtRaw) : null;
+        $intervalSeconds = max(1, (int) ($monitor['check_interval_seconds'] ?? 300));
+        $secondsSinceLast = $checkedAtTs ? max(0, time() - $checkedAtTs) : $intervalSeconds;
+        $nextDueSeconds = max(0, $intervalSeconds - $secondsSinceLast);
+
+        return [
+            'id' => (int) $monitor['id'],
+            'state' => $state,
+            'status_code' => $status,
+            'status_text' => $isUp
+                ? t('status.up', 'Up')
+                : ($isDown ? t('status.down', 'Down') : t('common.na')),
+            'health_percent' => $healthPercent,
+            'last_checked_at' => $checkedAtRaw ?? t('common.na'),
+            'last_checked_ts' => $checkedAtTs ?: null,
+            'interval_seconds' => $intervalSeconds,
+            'next_due_seconds' => $nextDueSeconds,
+            'expected_status' => $expectedStatus,
+            'is_active' => (int) ($monitor['is_active'] ?? 1) === 1,
+        ];
+    }
+
+    private function normalizeTargetType(string $targetType): string
+    {
+        $normalized = trim($targetType);
+        return in_array($normalized, self::ALLOWED_TYPES, true) ? $normalized : self::DEFAULT_TARGET_TYPE;
+    }
+
+    private function normalizeInterval(int $intervalSeconds): int
+    {
+        return in_array($intervalSeconds, self::ALLOWED_INTERVALS, true)
+            ? $intervalSeconds
+            : self::DEFAULT_INTERVAL_SECONDS;
+    }
+
+    private function normalizeExpectedStatus(int $expectedStatus): int
+    {
+        if ($expectedStatus < 100 || $expectedStatus > 599) {
+            return self::DEFAULT_EXPECTED_STATUS;
+        }
+
+        return $expectedStatus;
+    }
+
+    private function isValidTarget(string $targetType, string $url): bool
+    {
+        if ($targetType === 'database') {
+            return true;
+        }
+
+        return (bool) filter_var($url, FILTER_VALIDATE_URL);
+    }
+
+    private function normalizeTargetUrl(string $targetType, string $url): string
+    {
+        if ($targetType === 'database' && $url === '') {
+            return self::DATABASE_PLACEHOLDER_URL;
+        }
+
+        return $url;
+    }
+
     private function formatLongDuration(int $seconds): string
     {
         $days = intdiv($seconds, 86400);
@@ -374,7 +537,7 @@ class MonitorController extends Controller
 
     private function formatAgo(int $seconds): string
     {
-        return $this->formatShortDuration($seconds) . ' ago';
+        return $this->formatShortDuration($seconds) . ' ' . t('common.ago', 'ago');
     }
 
 }

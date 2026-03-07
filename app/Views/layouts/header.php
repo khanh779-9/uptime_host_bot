@@ -26,17 +26,17 @@
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav ms-auto fw-medium">
                     <?php if (!empty($_SESSION['user_id'])): ?>
-                        <li class="nav-item"><a class="nav-link px-3" href="<?= BASE_URL ?>/index.php?url=monitor/index"><i class="bi bi-display ms-1 me-1 d-inline-block d-lg-none"></i><?= htmlspecialchars(t('nav.monitors')) ?></a></li>
-                        <li class="nav-item"><a class="nav-link px-3" href="<?= BASE_URL ?>/index.php?url=settings/index"><i class="bi bi-gear ms-1 me-1 d-inline-block d-lg-none"></i><?= htmlspecialchars(t('nav.settings')) ?></a></li>
+                        <li class="nav-item"><a class="nav-link px-3" href="<?= route_url('monitor') ?>"><i class="bi bi-display ms-1 me-1 d-inline-block d-lg-none"></i><?= htmlspecialchars(t('nav.monitors')) ?></a></li>
+                        <li class="nav-item"><a class="nav-link px-3" href="<?= route_url('settings') ?>"><i class="bi bi-gear ms-1 me-1 d-inline-block d-lg-none"></i><?= htmlspecialchars(t('nav.settings')) ?></a></li>
                         <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
-                            <a class="btn btn-light rounded-pill px-4 d-inline-flex align-items-center gap-2" href="<?= BASE_URL ?>/index.php?url=auth/logout">
+                            <a class="btn btn-light rounded-pill px-4 d-inline-flex align-items-center gap-2" href="<?= route_url('logout') ?>">
                                 <i class="bi bi-box-arrow-right"></i>
                                 <?= htmlspecialchars(t('nav.logout')) ?> (<?= htmlspecialchars($_SESSION['username']) ?>)
                             </a>
                         </li>
                     <?php else: ?>
-                        <li class="nav-item"><a class="nav-link px-3" href="<?= BASE_URL ?>/index.php?url=auth/login"><?= htmlspecialchars(t('nav.login')) ?></a></li>
-                        <li class="nav-item ms-lg-2 mt-2 mt-lg-0"><a class="btn btn-primary rounded-pill px-4 shadow-sm d-inline-flex align-items-center gap-2" href="<?= BASE_URL ?>/index.php?url=auth/register"><?= htmlspecialchars(t('nav.register')) ?> <i class="bi bi-arrow-right-short fs-5 lh-1"></i></a></li>
+                        <li class="nav-item"><a class="nav-link px-3" href="<?= route_url('login') ?>"><?= htmlspecialchars(t('nav.login')) ?></a></li>
+                        <li class="nav-item ms-lg-2 mt-2 mt-lg-0"><a class="btn btn-primary rounded-pill px-4 shadow-sm d-inline-flex align-items-center gap-2" href="<?= route_url('register') ?>"><?= htmlspecialchars(t('nav.register')) ?> <i class="bi bi-arrow-right-short fs-5 lh-1"></i></a></li>
                     <?php endif; ?>
                 </ul>
             </div>

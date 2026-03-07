@@ -42,7 +42,7 @@ class SettingsController extends Controller
         $this->requireAuth();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('settings/index');
+            $this->redirect('settings');
         }
 
         $allowedThemes = ['light', 'dark'];
@@ -66,7 +66,7 @@ class SettingsController extends Controller
         $_SESSION['language_code'] = $languageCode;
         set_locale($languageCode);
 
-        header('Location: ' . BASE_URL . '/index.php?url=settings/index&saved=1');
+        header('Location: ' . route_url('settings', ['saved' => 1]));
         exit;
     }
 
@@ -75,7 +75,7 @@ class SettingsController extends Controller
         $this->requireAuth();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('settings/index');
+            $this->redirect('settings');
         }
 
         $userId = (int) $_SESSION['user_id'];
@@ -85,29 +85,29 @@ class SettingsController extends Controller
 
         if ($username === '' || $email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $_SESSION['profile_error'] = t('profile.invalid_input');
-            $this->redirect('settings/index');
+            $this->redirect('settings');
         }
 
         if ($this->userModel->usernameExistsExceptId($username, $userId)) {
             $_SESSION['profile_error'] = t('profile.username_exists');
-            $this->redirect('settings/index');
+            $this->redirect('settings');
         }
 
         if ($this->userModel->emailExistsExceptId($email, $userId)) {
             $_SESSION['profile_error'] = t('profile.email_exists');
-            $this->redirect('settings/index');
+            $this->redirect('settings');
         }
 
         if ($newPassword !== '' && strlen($newPassword) < 6) {
             $_SESSION['profile_error'] = t('profile.password_too_short');
-            $this->redirect('settings/index');
+            $this->redirect('settings');
         }
 
         $passwordArg = $newPassword !== '' ? $newPassword : null;
         $this->userModel->updateProfile($userId, $username, $email, $passwordArg);
         $_SESSION['username'] = $username;
 
-        header('Location: ' . BASE_URL . '/index.php?url=settings/index&profile_saved=1');
+        header('Location: ' . route_url('settings', ['profile_saved' => 1]));
         exit;
     }
 }

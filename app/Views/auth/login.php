@@ -1,4 +1,18 @@
 <div class="row justify-content-center align-items-center min-vh-100 py-4 py-lg-5">
+    <?php
+    $popupItems = [];
+    if (!empty($error)) {
+        $popupItems[] = [
+            'level' => 'danger',
+            'message' => (string) $error,
+        ];
+    }
+    ?>
+
+    <?php if (!empty($popupItems)): ?>
+        <?php include APP_PATH . '/Views/layouts/floating_popups.php'; ?>
+    <?php endif; ?>
+
     <div class="col-12 col-lg-10 col-xxl-8">
         <div class="card app-panel overflow-hidden rounded-4">
             <div class="row g-0">
@@ -15,7 +29,7 @@
                         <p class="mb-4 opacity-75"><?= htmlspecialchars(t('home.description')) ?></p>
                         <div class="small opacity-75 mb-2"><?= htmlspecialchars(t('auth.register_title')) ?>?</div>
                         <a class="btn btn-light btn-sm rounded-pill align-self-start px-4 shadow-sm fw-medium pt-2 pb-2"
-                            href="<?= BASE_URL ?>/index.php?url=auth/register"><?= htmlspecialchars(t('home.create_account')) ?></a>
+                            href="<?= route_url('register') ?>"><?= htmlspecialchars(t('home.create_account')) ?></a>
                     </div>
                 </div>
                 <div class="col-12 col-lg-7 p-4 p-lg-5 bg-body">
@@ -24,11 +38,7 @@
                         <?= htmlspecialchars(t('auth.login_subtitle', 'Welcome back, please sign in to continue.')) ?>
                     </p>
 
-                    <?php if (!empty($error)): ?>
-                        <div class="alert alert-danger" role="alert"><?= htmlspecialchars($error) ?></div>
-                    <?php endif; ?>
-
-                    <form method="post" action="<?= BASE_URL ?>/index.php?url=auth/login" class="needs-validation"
+                    <form method="post" action="<?= route_url('login') ?>" class="needs-validation"
                         novalidate>
                         <div class="form-floating mb-3">
                             <input class="form-control rounded-3" type="text" name="login_identifier"
@@ -48,7 +58,7 @@
 
                     <div class="text-center mt-4 small text-body-secondary">
                         <?= htmlspecialchars(t('auth.register_title')) ?>?
-                        <a href="<?= BASE_URL ?>/index.php?url=auth/register"
+                        <a href="<?= route_url('register') ?>"
                             class="text-decoration-none fw-semibold ms-1"><?= htmlspecialchars(t('home.create_account')) ?></a>
                     </div>
                 </div>

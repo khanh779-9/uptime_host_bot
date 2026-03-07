@@ -50,6 +50,10 @@ class Monitor extends Model
                 SET name = :name,
                     target_type = :target_type,
                     url = :url,
+                    last_checked_at = CASE
+                        WHEN check_interval_seconds <> :check_interval_seconds THEN NOW()
+                        ELSE last_checked_at
+                    END,
                     check_interval_seconds = :check_interval_seconds,
                     expected_status = :expected_status
                 WHERE id = :id AND user_id = :user_id';
@@ -94,6 +98,32 @@ class Monitor extends Model
                AND (last_checked_at IS NULL OR TIMESTAMPDIFF(SECOND, last_checked_at, NOW()) >= check_interval_seconds)'
         );
         return $stmt->fetchAll();
+    }
+
+    public function nextActiveDueInSeconds(): ?int
+    {
+        $stmt = $this->db->query(
+            'SELECT
+                MIN(
+                    GREATEST(
+                        0,
+                        check_interval_seconds - IF(
+                            last_checked_at IS NULL,
+                            check_interval_seconds,
+                            TIMESTAMPDIFF(SECOND, last_checked_at, NOW())
+                        )
+                    )
+                ) AS wait_seconds
+             FROM monitors
+             WHERE is_active = 1'
+        );
+
+        $row = $stmt->fetch();
+        if (!$row || $row['wait_seconds'] === null) {
+            return null;
+        }
+
+        return max(0, (int) $row['wait_seconds']);
     }
 
     public function updateCheckResult(int $id, int $statusCode): bool

@@ -65,6 +65,34 @@ function current_theme(): string
     return in_array($theme, ['light', 'dark'], true) ? $theme : 'light';
 }
 
+function app_action_routes(): array
+{
+    return [
+        'home' => ['controller' => 'HomeController', 'method' => 'index'],
+        'login' => ['controller' => 'AuthController', 'method' => 'login'],
+        'register' => ['controller' => 'AuthController', 'method' => 'register'],
+        'logout' => ['controller' => 'AuthController', 'method' => 'logout'],
+        'monitor' => ['controller' => 'MonitorController', 'method' => 'index'],
+        'monitor_detail' => ['controller' => 'MonitorController', 'method' => 'detail'],
+        'monitor_check' => ['controller' => 'MonitorController', 'method' => 'check'],
+        'monitor_create' => ['controller' => 'MonitorController', 'method' => 'create'],
+        'monitor_update' => ['controller' => 'MonitorController', 'method' => 'update'],
+        'monitor_delete' => ['controller' => 'MonitorController', 'method' => 'delete'],
+        'monitor_toggle' => ['controller' => 'MonitorController', 'method' => 'toggleActive'],
+        'settings' => ['controller' => 'SettingsController', 'method' => 'index'],
+        'settings_save' => ['controller' => 'SettingsController', 'method' => 'save'],
+        'settings_profile' => ['controller' => 'SettingsController', 'method' => 'profile'],
+        'incidents' => ['controller' => 'IncidentsController', 'method' => 'index'],
+        'cron_run' => ['controller' => 'CronController', 'method' => 'run'],
+    ];
+}
+
+function route_url(string $action, array $params = []): string
+{
+    $query = array_merge(['action' => trim($action)], $params);
+    return BASE_URL . '/index.php?' . http_build_query($query);
+}
+
 function set_flash(string $key, array $payload): void
 {
     if (session_status() !== PHP_SESSION_ACTIVE) {

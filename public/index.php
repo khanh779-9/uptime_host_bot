@@ -34,11 +34,25 @@ if (empty($_SESSION['theme_mode'])) {
 
 set_locale((string) $_SESSION['language_code']);
 
-$url = $_GET['url'] ?? 'home/index';
-$parts = array_values(array_filter(explode('/', trim($url, '/'))));
+$routes = app_action_routes();
 
-$controllerName = !empty($parts[0]) ? ucfirst(strtolower($parts[0])) . 'Controller' : 'HomeController';
-$action = $parts[1] ?? 'index';
+$actionKey = trim((string) ($_GET['action'] ?? ''));
+if ($actionKey === '') {
+    $actionKey = 'home';
+}
+
+if (!isset($routes[$actionKey])) {
+    http_response_code(404);
+    echo htmlspecialchars(t('error.action_not_found', 'Action not found'));
+    exit;
+}
+
+$controllerName = $routes[$actionKey]['controller'];
+$action = $routes[$actionKey]['method'];
+
+if (isset($_GET['monitor_id']) && !isset($_GET['id'])) {
+    $_GET['id'] = $_GET['monitor_id'];
+}
 
 $controllerFile = APP_PATH . '/Controllers/' . $controllerName . '.php';
 

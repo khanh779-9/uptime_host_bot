@@ -62,12 +62,29 @@ Open:
 ## 4) Run monitor checks (cron)
 
 Secure cron endpoint:
-- `GET /index.php?url=cron/run&token=YOUR_CRON_SECRET`
+- `GET /index.php?action=cron_run&token=YOUR_CRON_SECRET`
 
 Or via header:
 - `X-Cron-Token: YOUR_CRON_SECRET`
 
 You can schedule this endpoint every 1–5 minutes using your hosting cron service.
+
+### CLI checker (optional while loop)
+
+Run one cycle:
+
+```bash
+php cron/run_checker.php
+```
+
+Run continuously with loop mode:
+
+```bash
+php cron/run_checker.php --loop --sleep=30
+```
+
+- `--loop` (or `--watch`) keeps checker running
+- `--sleep=30` waits 30 seconds between cycles
 
 ## Docker (optional)
 

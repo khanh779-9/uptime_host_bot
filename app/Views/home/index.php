@@ -10,10 +10,10 @@
                 </div>
                 <div class="d-grid gap-3 mb-4">
                     <a class="btn btn-primary rounded-pill fw-medium shadow-sm py-2"
-                        href="<?= BASE_URL ?>/index.php?url=auth/login"><i
+                        href="<?= route_url('login') ?>"><i
                             class="bi bi-box-arrow-in-right me-2"></i><?= htmlspecialchars(t('home.login')) ?></a>
                     <a class="btn btn-outline-primary rounded-pill fw-medium py-2"
-                        href="<?= BASE_URL ?>/index.php?url=auth/register"><i
+                        href="<?= route_url('register') ?>"><i
                             class="bi bi-person-plus me-2"></i><?= htmlspecialchars(t('home.create_account')) ?></a>
                 </div>
                 <div class="mt-auto small text-secondary">
@@ -37,11 +37,11 @@
                 </p>
                 <div class="d-grid gap-3 d-sm-flex">
                     <a class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-medium d-inline-flex align-items-center justify-content-center gap-2"
-                        href="<?= BASE_URL ?>/index.php?url=auth/register">
+                        href="<?= route_url('register') ?>">
                         <i class="bi bi-rocket-takeoff"></i> <?= htmlspecialchars(t('home.create_account')) ?>
                     </a>
                     <a class="btn btn-light rounded-pill px-4 py-2 border fw-medium d-inline-flex align-items-center justify-content-center gap-2"
-                        href="<?= BASE_URL ?>/index.php?url=auth/login">
+                        href="<?= route_url('login') ?>">
                         <i class="bi bi-box-arrow-in-right"></i> <?= htmlspecialchars(t('home.login')) ?>
                     </a>
                 </div>

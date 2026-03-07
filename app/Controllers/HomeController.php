@@ -7,7 +7,7 @@ class HomeController extends Controller
     public function index(): void
     {
         if (!empty($_SESSION['user_id'])) {
-            $this->redirect('monitor/index');
+            $this->redirect('monitor');
         }
 
         $this->view('home/index', ['hideTopNav' => true]);
